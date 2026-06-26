@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Working with Claude — Rubens Capital Partners</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Archivo+Expanded:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --paper:#F1F3EE; --backdrop:#E5E8DF; --panel:#E8EBE2; --card:#FCFDFB;
+    --ink:#15241E; --ink-soft:#42504A; --line:#C7CFC4; --line-soft:#D9DFD4;
+    --accent:#1F5C4D; --accent-deep:#163F35; --gold:#A87B33; --gold-soft:#F0E6D2;
+    --tier-green:#2F6B4F; --tier-amber:#B07D24; --tier-red:#A2433A; --tier-black:#15241E;
+    --maxw:780px;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--backdrop);color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:16.5px;line-height:1.66;
+    font-feature-settings:"kern" 1,"liga" 1;-webkit-font-smoothing:antialiased}
+  .sheet{max-width:920px;margin:36px auto;background:var(--paper);
+    padding:0 clamp(22px,6vw,76px) 72px;
+    box-shadow:0 1px 0 rgba(21,36,30,.04),0 24px 60px -28px rgba(21,36,30,.28)}
+
+  h1,h2,h3,h4{font-family:'Archivo',system-ui,sans-serif;color:var(--ink);margin:0;line-height:1.12;letter-spacing:-.012em}
+  p{margin:0 0 1.05em}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--line)}
+  a:hover{border-color:var(--accent)}
+  strong{font-weight:600}
+  .content{max-width:var(--maxw);margin:0 auto}
+  em{font-style:italic}
+
+  .eyebrow{font-family:'Archivo',sans-serif;font-weight:700;font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+
+  /* dimension-line divider (signature) */
+  .dim{position:relative;height:1px;background:var(--line);margin:52px auto;max-width:var(--maxw)}
+  .dim::before,.dim::after{content:"";position:absolute;top:-4.5px;width:1px;height:10px;background:var(--accent)}
+  .dim::before{left:0}.dim::after{right:0}
+  .dim.label{display:flex;align-items:center;justify-content:center;background:none;height:auto}
+  .dim.label::before,.dim.label::after{display:none}
+  .dim.label span{display:flex;align-items:center;gap:14px;width:100%}
+  .dim.label span::before,.dim.label span::after{content:"";flex:1;height:1px;background:var(--line)}
+  .dim.label .tag{font-family:'Archivo',sans-serif;font-weight:700;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);white-space:nowrap}
+
+  /* cover */
+  .cover{position:relative;padding:46px 0 40px}
+  .cover .reg{position:absolute;width:13px;height:13px;border:1.5px solid var(--accent);opacity:.7}
+  .cover .reg.tl{top:8px;left:-14px;border-right:none;border-bottom:none}
+  .cover .reg.tr{top:8px;right:-14px;border-left:none;border-bottom:none}
+  .cover-top{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:clamp(40px,12vw,120px)}
+  .cover-top .who{font-family:'Archivo',sans-serif;font-weight:700;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink)}
+  .cover-top .meta{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-family:'Archivo',sans-serif;font-weight:600}
+  .cover h1{font-family:'Archivo Expanded','Archivo',sans-serif;font-weight:800;font-size:clamp(40px,9vw,82px);line-height:.98;letter-spacing:-.02em}
+  .cover h1 .with{display:block;color:var(--accent)}
+  .cover .sub{font-size:clamp(16px,2.4vw,20px);color:var(--ink-soft);margin-top:22px;max-width:30ch;font-weight:450}
+  .cover-foot{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-top:46px}
+  .cover-foot .stand{max-width:46ch;font-size:14.5px;color:var(--ink-soft);margin:0}
+  .cover-foot .edn{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.04em;color:var(--accent);text-align:right;white-space:nowrap}
+
+  .section{padding-top:8px}
+  .lead{font-size:18px;color:var(--ink-soft)}
+
+  .ways{display:grid;gap:16px;margin:26px 0}
+  .way{display:grid;grid-template-columns:34px 1fr;gap:16px;align-items:start;padding:18px 20px;background:var(--card);border:1px solid var(--line-soft);border-radius:12px}
+  .way .n{font-family:'Archivo',sans-serif;font-weight:800;font-size:18px;color:var(--card);background:var(--accent);width:30px;height:30px;border-radius:8px;display:grid;place-items:center;line-height:1}
+  .way.primary{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .way h4{font-size:16.5px;font-weight:700;margin-bottom:4px}
+  .way p{margin:0;font-size:14.8px;color:var(--ink-soft)}
+
+  .prompt{background:var(--ink);color:#E9F0EA;border-radius:10px;font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:13.2px;line-height:1.58;padding:15px 17px 16px;margin:14px 0;overflow-wrap:break-word}
+  .prompt .plabel{display:flex;align-items:center;gap:8px;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:#8FB6A2;margin-bottom:9px;font-weight:500}
+  .prompt .plabel::before{content:"";width:6px;height:6px;background:var(--gold);transform:rotate(45deg)}
+
+  /* UI path chips, e.g. Home -> Add-ins */
+  .uipath{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.84em;background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:1px 7px;white-space:nowrap;color:var(--ink)}
+
+  .quick{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px clamp(20px,4vw,32px) 28px;margin:30px auto;max-width:var(--maxw)}
+  .quick::before{content:"";position:absolute;left:0;top:18px;bottom:18px;width:3px;background:var(--gold);border-radius:3px}
+  .quick .qhead{display:flex;align-items:center;gap:11px;margin-bottom:6px}
+  .quick .star{width:13px;height:13px;background:var(--gold);transform:rotate(45deg);flex:none}
+  .quick h3{font-size:20px;font-weight:800}
+  .quick ol{margin:14px 0 0;padding-left:0;counter-reset:q;list-style:none}
+  .quick li{position:relative;padding:7px 0 7px 40px;border-top:1px solid var(--line-soft)}
+  .quick li:first-of-type{border-top:none}
+  .quick li::before{counter-increment:q;content:counter(q);position:absolute;left:0;top:8px;font-family:'Archivo',sans-serif;font-weight:800;font-size:13px;color:var(--accent);width:26px;height:26px;border:1.5px solid var(--accent);border-radius:50%;display:grid;place-items:center}
+
+  .toc ol{list-style:none;margin:18px 0 0;padding:0}
+  .toc li{display:flex;align-items:baseline;gap:14px;padding:11px 0;border-bottom:1px solid var(--line-soft)}
+  .toc li .tn{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);min-width:24px}
+  .toc li .tt{font-family:'Archivo',sans-serif;font-weight:600;font-size:16px}
+  .toc li .dots{flex:1;border-bottom:1px dotted var(--line);transform:translateY(-3px)}
+
+  .part{margin:0 auto;max-width:var(--maxw)}
+  .part-open{display:flex;align-items:flex-start;gap:18px;margin-bottom:10px}
+  .part-no{font-family:'Archivo Expanded','Archivo',sans-serif;font-weight:800;font-size:clamp(40px,8vw,64px);line-height:.8;color:var(--line);letter-spacing:-.02em;flex:none}
+  .part-open .pt{padding-top:6px}
+  .part-open .pe{font-family:'Archivo',sans-serif;font-weight:700;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:7px}
+  .part-open h2{font-size:clamp(23px,4vw,32px);font-weight:800}
+
+  h3.sub{font-size:18.5px;font-weight:700;margin:30px 0 .5em;color:var(--ink)}
+  h3.sub .k{color:var(--accent)}
+
+  .call{border-radius:11px;padding:16px 18px 15px;margin:20px auto;max-width:var(--maxw);border:1px solid var(--line-soft);background:var(--card)}
+  .call .clabel{font-family:'Archivo',sans-serif;font-weight:700;font-size:11px;letter-spacing:.13em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .call p:last-child{margin-bottom:0}
+  .call .clabel::before{content:"";width:8px;height:8px;flex:none}
+  .call.tip{border-left:3px solid var(--accent)} .call.tip .clabel{color:var(--accent)} .call.tip .clabel::before{background:var(--accent)}
+  .call.warn{border-left:3px solid var(--tier-amber);background:#FBF6EC} .call.warn .clabel{color:var(--tier-amber)} .call.warn .clabel::before{background:var(--tier-amber);transform:rotate(45deg)}
+  .call.note{border-left:3px solid var(--ink-soft)} .call.note .clabel{color:var(--ink-soft)} .call.note .clabel::before{background:var(--ink-soft)}
+
+  .ai-box{border:1.5px dashed var(--gold);background:linear-gradient(180deg,#FCFAF4,#FBFCFA);border-radius:14px;padding:8px clamp(18px,3.5vw,26px) 20px;max-width:var(--maxw);margin:0 auto}
+  .ai-box .robot{font-family:'Archivo',sans-serif;font-weight:800;letter-spacing:.14em;text-transform:uppercase;font-size:11px;color:var(--gold);display:flex;align-items:center;gap:9px;margin:18px 0 2px}
+  .ai-box .robot::before{content:"";width:9px;height:9px;background:var(--gold);transform:rotate(45deg)}
+  .ai-instr{background:var(--card);border:1px solid var(--line-soft);border-radius:10px;padding:18px 20px;margin-top:14px;font-size:15px}
+  .ai-instr strong{color:var(--accent)}
+  .ai-instr ol{margin:.4em 0 .2em;padding-left:1.3em} .ai-instr ol li{margin:.3em 0}
+
+  .recipe{border:1px solid var(--line);border-radius:13px;overflow:hidden;margin:18px auto;max-width:var(--maxw);background:var(--card)}
+  .recipe .rhead{background:var(--panel);padding:13px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:11px}
+  .recipe .rhead .dot{width:9px;height:9px;background:var(--accent);transform:rotate(45deg);flex:none}
+  .recipe .rhead h4{font-size:16.5px;font-weight:700}
+  .recipe .rbody{padding:16px 18px 18px}
+  .recipe .field{margin-bottom:11px} .recipe .field:last-child{margin-bottom:0}
+  .recipe .ft{font-family:'Archivo',sans-serif;font-weight:700;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+  .recipe .field.watch .ft{color:var(--tier-amber)}
+  .recipe .field p{margin:0;font-size:15px;color:var(--ink-soft)}
+  .recipe .prompt{margin:6px 0 0}
+
+  /* model comparison */
+  .models{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px auto;max-width:var(--maxw)}
+  .model{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:16px 16px 18px;display:flex;flex-direction:column}
+  .model.pick{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .model .mname{font-family:'Archivo',sans-serif;font-weight:800;font-size:16px}
+  .model .badge{align-self:flex-start;font-family:'Archivo',sans-serif;font-weight:700;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;border-radius:20px;padding:3px 10px;margin:8px 0 10px}
+  .model .badge.main{background:var(--accent);color:#fff}
+  .model .badge.occ{background:var(--gold-soft);color:#7C5A1E;border:1px solid #E2CF9F}
+  .model .badge.skip{background:#F3E3E1;color:var(--tier-red);border:1px solid #E3C3BF}
+  .model p{font-size:13.6px;color:var(--ink-soft);margin:0}
+
+  /* figures / SVG */
+  .figure{margin:24px auto;max-width:var(--maxw)}
+  .figure svg{width:100%;height:auto;display:block;border:1px solid var(--line-soft);border-radius:12px;background:var(--card)}
+  .figcaption{font-size:13px;color:var(--ink-soft);margin-top:9px;text-align:center}
+  .legend{list-style:none;margin:14px auto 0;padding:0;max-width:var(--maxw);display:grid;grid-template-columns:1fr 1fr;gap:8px 22px}
+  .legend li{font-size:14px;color:var(--ink-soft);display:flex;gap:9px;align-items:baseline}
+  .legend .num{font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;color:#fff;background:var(--accent);min-width:19px;height:19px;border-radius:50%;display:inline-grid;place-items:center;flex:none}
+  .legend strong{color:var(--ink)}
+
+  .table-wrap{overflow-x:auto;margin:20px auto;max-width:var(--maxw);-webkit-overflow-scrolling:touch}
+  table{border-collapse:collapse;width:100%;font-size:14.6px;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  thead th{background:var(--accent);color:#EAF1EC;font-family:'Archivo',sans-serif;font-weight:600;text-align:left;padding:11px 14px;font-size:12.5px;letter-spacing:.04em}
+  tbody td{padding:12px 14px;border-top:1px solid var(--line-soft);vertical-align:top;color:var(--ink-soft)}
+  tbody td:first-child{color:var(--ink);font-weight:500}
+  .cheat td:first-child{font-weight:450;color:var(--ink-soft)} .cheat td strong{color:var(--ink)}
+  .tiers .tier{font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;white-space:nowrap;border-left:4px solid var(--line);padding-left:14px}
+  .tiers tr.green .tier{color:var(--tier-green);border-left-color:var(--tier-green)}
+  .tiers tr.amber .tier{color:var(--tier-amber);border-left-color:var(--tier-amber)}
+  .tiers tr.red .tier{color:var(--tier-red);border-left-color:var(--tier-red)}
+  .tiers tr.black .tier{color:var(--tier-black);border-left-color:var(--tier-black)}
+
+  .check{list-style:none;margin:16px auto;padding:0;max-width:var(--maxw)}
+  .check li{position:relative;padding:9px 0 9px 34px;border-bottom:1px solid var(--line-soft);font-size:15.4px}
+  .check li::before{content:"";position:absolute;left:0;top:11px;width:17px;height:17px;border:1.6px solid var(--accent);border-radius:4px;background:var(--card)}
+
+  /* quick answers */
+  .qa{max-width:var(--maxw);margin:16px auto 0}
+  .qa .row{padding:13px 0;border-top:1px solid var(--line-soft)}
+  .qa .row:first-child{border-top:none}
+  .qa .q{font-family:'Archivo',sans-serif;font-weight:700;font-size:15px;color:var(--ink);margin-bottom:2px}
+  .qa .a{font-size:14.6px;color:var(--ink-soft);margin:0}
+
+  ul.clean{padding-left:1.15em;margin:.6em 0 1.1em}
+  ul.clean li{margin:.4em 0;padding-left:.2em} ul.clean li::marker{color:var(--accent)}
+  ol.steps{padding-left:1.25em;margin:.6em 0 1.1em}
+  ol.steps li{margin:.5em 0} ol.steps li::marker{font-family:'Archivo',sans-serif;font-weight:700;color:var(--accent)}
+
+  .flag{background:var(--gold-soft);border:1px solid #E2CF9F;border-radius:6px;padding:1px 8px 2px;font-size:.92em;color:#7C5A1E}
+  .flag::before{content:"To confirm";font-family:'Archivo',sans-serif;font-weight:700;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--gold);border-radius:3px;padding:1px 5px;margin-right:7px;vertical-align:1.5px}
+
+  .foot{max-width:var(--maxw);margin:54px auto 0;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-soft);letter-spacing:.03em}
+  .foot .l{color:var(--accent)}
+
+  @media (max-width:620px){
+    .models{grid-template-columns:1fr}
+    .legend{grid-template-columns:1fr}
+  }
+  @media (max-width:560px){
+    body{font-size:16px}
+    .way{grid-template-columns:1fr} .way .n{display:none}
+    .part-open{gap:12px}
+    .cover-top{margin-bottom:54px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+  @page{size:A4;margin:18mm 16mm}
+  @media print{
+    body{background:#fff}
+    .sheet{max-width:none;margin:0;box-shadow:none;padding:0}
+    .part,.cover{break-inside:avoid}
+    .part-break{break-before:page}
+    .recipe,.call,.quick,.table-wrap,.ai-instr,.figure,.models,.model{break-inside:avoid}
+    a{color:var(--ink);border:none}
+    .cover .reg{display:none}
+  }
+</style>
+</head>
+<body>
+<main class="sheet">
+
+  <!-- ===================== COVER ===================== -->
+  <header class="cover">
+    <span class="reg tl"></span><span class="reg tr"></span>
+    <div class="cover-top">
+      <div class="who">Rubens&nbsp;Capital&nbsp;Partners</div>
+      <div class="meta">Internal&nbsp;· Confidential</div>
+    </div>
+    <h1>Working<br><span class="with">with Claude</span></h1>
+    <p class="sub">A starter guide for everyone — no technical background needed.</p>
+    <div class="cover-foot">
+      <p class="stand">An introduction to using Claude in your day-to-day work: drafting, summarising, reading documents, and handing off the busywork — safely, on the firm's own material.</p>
+      <div class="edn">First&nbsp;draft · EN<br>Edition&nbsp;1.0 · 2026</div>
+    </div>
+  </header>
+
+  <div class="dim label"><span><span class="tag">How to use this guide</span></span></div>
+
+  <!-- ===================== HOW TO USE ===================== -->
+  <section class="section content">
+    <p class="lead">There are two ways to use this document — and we strongly recommend the first.</p>
+    <div class="ways">
+      <div class="way primary">
+        <div class="n">1</div>
+        <div><h4>Upload it to Claude and let it coach you — recommended</h4>
+          <p>Open the Claude desktop app, start a new chat, attach this file, and paste in the line below. Claude then walks you through everything here at your own pace, tailored to your role.</p></div>
+      </div>
+      <div class="way">
+        <div class="n">2</div>
+        <div><h4>Read it straight through</h4>
+          <p>That works too. But the whole point of this tool is that it can guide you personally — so even if you read it first, try the upload afterwards.</p></div>
+      </div>
+    </div>
+    <div class="prompt"><div class="plabel">Paste this into Claude</div>
+      I've uploaded Rubens Capital Partners' guide to using Claude. I'm new to this. Please act as my onboarding coach: read the guide, then walk me through getting set up step by step. Ask me what my role is and what I'd find most useful, and go at a beginner's pace.</div>
+    <div class="call tip"><div class="clabel">By the end you'll be able to</div>
+      <p>Draft and rewrite documents in seconds, summarise long reports, pull structured information out of leases and PDFs, triage your inbox, work inside Excel and PowerPoint, and hand off multi-step work — all using the firm's real material, safely.</p></div>
+  </section>
+
+  <!-- ===================== QUICKSTART ===================== -->
+  <div class="quick">
+    <div class="qhead"><span class="star"></span><h3>Quickstart — if you read nothing else</h3></div>
+    <ol>
+      <li><strong>Open the Claude app</strong> on your computer and sign in with your work email.</li>
+      <li><strong>Try one real task today.</strong> Paste in an email you need to reply to and say <em>"draft a short, professional reply."</em> That's it — you've started.</li>
+      <li><strong>You cannot break anything.</strong> Nothing you type damages any system. The worst that can happen is a bad draft you delete. So experiment freely.</li>
+      <li><strong>Use a new chat for each new topic</strong> — short conversations give sharper answers (Part 4 explains why).</li>
+      <li><strong>When you're ready for the guided version,</strong> upload this guide and use the line above.</li>
+    </ol>
+  </div>
+
+  <!-- ===================== TOC ===================== -->
+  <div class="dim label"><span><span class="tag">Contents</span></span></div>
+  <section class="section toc content">
+    <ol>
+      <li><span class="tn">01</span><span class="tt">What this is, and why it's worth twenty minutes</span><span class="dots"></span></li>
+      <li><span class="tn">02</span><span class="tt">Opening the app: signing in and finding your way</span><span class="dots"></span></li>
+      <li><span class="tn">03</span><span class="tt">The ways to work with Claude</span><span class="dots"></span></li>
+      <li><span class="tn">04</span><span class="tt">Getting the best from Claude: models, limits &amp; context</span><span class="dots"></span></li>
+      <li><span class="tn">05</span><span class="tt">Giving Claude memory</span><span class="dots"></span></li>
+      <li><span class="tn">06</span><span class="tt">Putting it to work: real RCP use cases</span><span class="dots"></span></li>
+      <li><span class="tn">07</span><span class="tt">Working safely with firm data</span><span class="dots"></span></li>
+      <li><span class="tn">08</span><span class="tt">Your first twenty minutes, and where to get help</span><span class="dots"></span></li>
+      <li><span class="tn">A</span><span class="tt">For Claude — instructions for the AI</span><span class="dots"></span></li>
+    </ol>
+  </section>
+
+  <!-- ===================== PART 1 ===================== -->
+  <div class="dim"></div>
+  <section class="part part-break">
+    <div class="part-open"><div class="part-no">01</div>
+      <div class="pt"><div class="pe">Part one</div><h2>What this is, and why it's worth twenty minutes</h2></div></div>
+
+    <h3 class="sub">Claude, in plain language</h3>
+    <p>Claude is an AI assistant you talk to in plain language — and you can write to it in Dutch just as easily as English; it understands both. You type what you need (a question, a document to summarise, an email to draft) and it responds. There's no special language to learn and no buttons to memorise. If you can write a message to a colleague, you can use Claude.</p>
+
+    <h3 class="sub">How this differs from the free chatbots you may have seen</h3>
+    <p>This is the same underlying Claude, but running inside the firm's own secure, paid workspace rather than a free public website. That matters in three ways:</p>
+    <ul class="clean">
+      <li>It can work with your <strong>actual files and tools</strong> — your documents, our SharePoint, and (once installed) Excel and Word — not just a blank chat box.</li>
+      <li>The firm's data is <strong>protected</strong> here in a way it is not on a free consumer tool (more in Part 7).</li>
+      <li>You have a proper <strong>account</strong> and the firm has oversight, which is what makes it appropriate for real work.</li>
+    </ul>
+
+    <h3 class="sub">What it's genuinely good at</h3>
+    <p>Drafting and rewriting; summarising long or dense documents; extracting structured information from material you give it (a table of key terms from a stack of leases, say); answering questions about documents you provide; translating; brainstorming; and explaining things you don't understand. For a document-heavy business like ours, that's a large share of the working day.</p>
+
+    <div class="call warn"><div class="clabel">Where to stay sharp</div>
+      <p>Claude can occasionally state something <strong>wrong with complete confidence</strong> — this is the single most important thing to understand. Double-check <strong>numbers, dates, citations, and specific legal or regulatory points</strong>; a misread rent figure looks exactly as confident as a correct one. So the firm-wide rule is simple: <strong>by default, a human reviews anything that affects a decision or leaves the building.</strong> Claude does the heavy lifting and gives you a strong first draft; the judgement stays with you.</p></div>
+
+    <h3 class="sub">It feels slower before it feels faster — that's normal</h3>
+    <p>For the first few days, working with Claude can feel clumsy. You're learning how to ask, and it doesn't yet know you. This early dip is completely normal — everyone goes through it. Push past the first week and it starts to genuinely save you time. Don't judge the tool by day one.</p>
+
+    <h3 class="sub">Your account: a Teams seat under the firm's Enterprise</h3>
+    <ul class="clean">
+      <li>Your chats and files are <strong>private to you</strong> by default. Colleagues cannot see your individual conversations.</li>
+      <li>Under our Enterprise terms, <strong>our data is not used to train Anthropic's models</strong> by default, and how long data is kept is controlled by our administrators.</li>
+      <li>Some things are <strong>shared by design</strong> — a Project you create can be shared with colleagues, and administrators can see overall usage for governance.</li>
+    </ul>
+    <p>The upshot: it's safe to do real work here in a way it would not be on a free public chatbot — as long as you follow the data rules in Part 7.</p>
+  </section>
+
+  <!-- ===================== PART 2 — APP TOUR ===================== -->
+  <div class="dim"></div>
+  <section class="part part-break">
+    <div class="part-open"><div class="part-no">02</div>
+      <div class="pt"><div class="pe">Part two</div><h2>Opening the app: signing in and finding your way</h2></div></div>
+
+    <h3 class="sub">Signing in</h3>
+    <p>You already have the Claude app on your computer. Open it and <strong>sign in with your Rubens Capital Partners work email</strong> — this puts you on the firm's secure workspace, where the data protections in Part 7 apply. If sign-in doesn't work first time, that's almost always an account setup detail rather than anything you did; ask a champion (Part 8).</p>
+
+    <h3 class="sub">A quick tour of the window</h3>
+    <p>The first time you open it, you'll mostly see a big box that says something like "Message Claude." Here's where the few things you'll actually use are:</p>
+
+    <div class="figure">
+      <svg viewBox="0 0 800 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A labelled diagram of the Claude desktop app window.">
+        <!-- window -->
+        <rect x="36" y="34" width="728" height="402" rx="16" fill="#FCFDFB" stroke="#C7CFC4"/>
+        <!-- sidebar -->
+        <rect x="36" y="34" width="196" height="402" rx="16" fill="#E8EBE2"/>
+        <rect x="216" y="34" width="16" height="402" fill="#E8EBE2"/>
+        <line x1="232" y1="34" x2="232" y2="436" stroke="#C7CFC4"/>
+        <!-- new chat -->
+        <rect x="54" y="58" width="160" height="34" rx="9" fill="#D97757"/>
+        <text x="134" y="80" font-family="Archivo,sans-serif" font-size="14" font-weight="700" fill="#FCFDFB" text-anchor="middle">+  New chat</text>
+        <circle cx="64" cy="75" r="11" fill="#1F5C4D" stroke="#FCFDFB" stroke-width="1.5"/>
+        <text x="64" y="79.5" font-family="Archivo,sans-serif" font-size="12" font-weight="800" fill="#fff" text-anchor="middle">1</text>
+        <!-- nav -->
+        <rect x="54" y="112" width="160" height="30" rx="8" fill="#D9DFD4"/>
+        <text x="68" y="131" font-family="Inter,sans-serif" font-size="13" font-weight="600" fill="#15241E">Chat</text>
+        <text x="68" y="162" font-family="Inter,sans-serif" font-size="13" fill="#42504A">Cowork</text>
+        <text x="68" y="190" font-family="Inter,sans-serif" font-size="13" fill="#42504A">Code</text>
+        <circle cx="200" cy="127" r="11" fill="#1F5C4D"/><text x="200" y="131.5" font-family="Archivo,sans-serif" font-size="12" font-weight="800" fill="#fff" text-anchor="middle">2</text>
+        <!-- faux history -->
+        <line x1="54" y1="220" x2="206" y2="220" stroke="#C7CFC4"/>
+        <rect x="54" y="236" width="150" height="9" rx="4.5" fill="#D9DFD4"/>
+        <rect x="54" y="256" width="120" height="9" rx="4.5" fill="#D9DFD4"/>
+        <rect x="54" y="276" width="140" height="9" rx="4.5" fill="#D9DFD4"/>
+        <!-- settings -->
+        <circle cx="64" cy="406" r="7.5" fill="none" stroke="#42504A" stroke-width="1.6"/>
+        <text x="80" y="411" font-family="Inter,sans-serif" font-size="13" fill="#42504A">Settings</text>
+        <circle cx="200" cy="406" r="11" fill="#1F5C4D"/><text x="200" y="410.5" font-family="Archivo,sans-serif" font-size="12" font-weight="800" fill="#fff" text-anchor="middle">3</text>
+        <!-- main: chat bubbles -->
+        <rect x="430" y="70" width="296" height="46" rx="12" fill="#E8EBE2"/>
+        <rect x="270" y="132" width="320" height="60" rx="12" fill="#F1F3EE" stroke="#D9DFD4"/>
+        <rect x="430" y="208" width="296" height="40" rx="12" fill="#E8EBE2"/>
+        <!-- composer -->
+        <rect x="270" y="356" width="456" height="56" rx="13" fill="#F1F3EE" stroke="#C7CFC4"/>
+        <!-- paperclip -->
+        <path d="M292 372 a7 7 0 0 1 14 0 v16 a4 4 0 0 1 -8 0 v-12" fill="none" stroke="#42504A" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="299" cy="368" r="11" fill="#1F5C4D"/><text x="299" y="372" font-family="Archivo,sans-serif" font-size="12" font-weight="800" fill="#fff" text-anchor="middle">4</text>
+        <text x="320" y="389" font-family="Inter,sans-serif" font-size="13.5" fill="#8a948e">Message Claude…</text>
+        <!-- model selector -->
+        <rect x="556" y="372" width="118" height="26" rx="13" fill="#FCFDFB" stroke="#C7CFC4"/>
+        <text x="571" y="389" font-family="Inter,sans-serif" font-size="12.5" font-weight="600" fill="#15241E">Sonnet 4.6 ▾</text>
+        <circle cx="556" cy="372" r="11" fill="#1F5C4D"/><text x="556" y="376" font-family="Archivo,sans-serif" font-size="12" font-weight="800" fill="#fff" text-anchor="middle">5</text>
+        <!-- send -->
+        <circle cx="700" cy="385" r="17" fill="#D97757"/>
+        <path d="M693 385 h13 M701 380 l6 5 l-6 5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="716" cy="370" r="11" fill="#1F5C4D"/><text x="716" y="374" font-family="Archivo,sans-serif" font-size="12" font-weight="800" fill="#fff" text-anchor="middle">6</text>
+      </svg>
+      <div class="figcaption">The Claude desktop app. You only need six things to start.</div>
+    </div>
+
+    <ul class="legend">
+      <li><span class="num">1</span><span><strong>New chat.</strong> Start a fresh conversation. Use one per topic.</span></li>
+      <li><span class="num">2</span><span><strong>Chat / Cowork / Code.</strong> Switch between the ways of working (Part 3).</span></li>
+      <li><span class="num">3</span><span><strong>Settings.</strong> Your preferences, and <span class="uipath">Settings → Usage</span> to see your limits.</span></li>
+      <li><span class="num">4</span><span><strong>Attach a file.</strong> Add a PDF, Word doc, or spreadsheet to the chat.</span></li>
+      <li><span class="num">5</span><span><strong>Model &amp; effort.</strong> Click the model name to switch model (Part 4).</span></li>
+      <li><span class="num">6</span><span><strong>Send.</strong> Send your message (or just press Enter).</span></li>
+    </ul>
+
+    <div class="call note"><div class="clabel">Two things people always ask</div>
+      <p style="margin-bottom:.5em"><strong>How do I add a document?</strong> Click the paperclip (4), or simply drag the file onto the chat. You can also paste text straight in.</p>
+      <p><strong>How do I get the answer out?</strong> Select Claude's reply and copy it into your email or Word document. For bigger pieces of work, Cowork can save a finished file for you directly (Part 3).</p></div>
+  </section>
+
+  <!-- ===================== PART 3 — WAYS TO WORK ===================== -->
+  <div class="dim"></div>
+  <section class="part part-break">
+    <div class="part-open"><div class="part-no">03</div>
+      <div class="pt"><div class="pe">Part three</div><h2>The ways to work with Claude</h2></div></div>
+    <p>There isn't just one "Claude." There are a few different surfaces, each suited to a different kind of work. The quick version:</p>
+
+    <div class="table-wrap"><table class="cheat">
+      <thead><tr><th>If you want to…</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>Ask a question, draft an email, or summarise a document you paste or upload</td><td><strong>Chat</strong></td></tr>
+        <tr><td>Have Claude work through a multi-step task across several files and hand you finished output</td><td><strong>Cowork</strong></td></tr>
+        <tr><td>Update an Excel model or draft in Word without leaving the app</td><td><strong>Claude in Microsoft&nbsp;365</strong></td></tr>
+        <tr><td>Write code or do heavy technical / data work</td><td><strong>Claude Code</strong> <em>(optional)</em></td></tr>
+      </tbody>
+    </table></div>
+
+    <h3 class="sub"><span class="k">Chat</span> — your everyday on-ramp</h3>
+    <p>Where most people start and spend most of their time. Open a chat, type what you need, optionally attach a file. Ask it to draft, summarise, rewrite, explain, or compare. If you only ever use Chat, you'll already get enormous value. Two things worth knowing:</p>
+    <ul class="clean">
+      <li><strong>Projects</strong> group related chats with reference files and standing instructions, so Claude has the background every time. A "Magnolia Reserve" project could hold the asset's key documents and a note on how you like updates written.</li>
+      <li><strong>Personal preferences</strong> (in Settings) let you tell Claude once how you like things — tone, length, format — so you don't repeat yourself.</li>
+    </ul>
+    <div class="call tip"><div class="clabel">Our SharePoint is already connected</div>
+      <p>Claude can read approved documents straight from our SharePoint — this is set up for everyone already. Its access is <strong>read-only</strong>: it can read and reference those files, but it cannot change, move, or delete anything there. Remember the data tiers in Part 7 when you point it at sensitive folders.</p></div>
+
+    <h3 class="sub"><span class="k">Cowork</span> — the workhorse for us</h3>
+    <p>Where Chat <em>advises</em> you, <strong>Cowork does the work</strong> — directly on your files, step by step. You point it at a folder, describe the outcome you want, and it plans and carries out the task: reading across documents, producing a draft, building a table, saving a finished file. For asset management this is the big unlock: point it at a folder of lease PDFs and ask for an abstraction table; hand it source files and ask for a structured first draft of a report.</p>
+    <div class="call tip"><div class="clabel">Recommended setting — use Auto mode</div>
+      <p>Cowork can ask your permission before <em>every single step</em> ("Ask before acting"), which quickly becomes exhausting — you'd be clicking <em>Allow</em> constantly. We recommend switching the mode selector to <strong>Auto</strong>: Claude then handles routine steps on its own and only stops to ask about genuinely risky ones. Two reassurances: it will <strong>always ask before permanently deleting</strong> a file, and you can <strong>stop it at any moment</strong>. For unfamiliar or especially sensitive work, switch back to "Ask before acting" for that session.</p></div>
+    <ul class="clean">
+      <li>It's a newer "research preview" — powerful, but you supervise. Give clear instructions and review what it produces.</li>
+      <li>The desktop app needs to <strong>stay open</strong> while Cowork is working on a task.</li>
+      <li>Cowork uses up more of your usage than a normal chat (Part 4) — reach for it when the task genuinely needs it.</li>
+    </ul>
+
+    <h3 class="sub"><span class="k">Claude in Excel, Word &amp; PowerPoint</span> — where you already live</h3>
+    <p>Claude can sit <strong>inside the Office apps</strong>, so you can build or explain a model in Excel, or draft in Word, without switching windows. It uses your same Claude login and the same usage limits. Installing it takes a minute:</p>
+    <ol class="steps">
+      <li>Open the <strong>Microsoft Marketplace</strong> listing for "Claude for Microsoft 365" and click <span class="uipath">Get it now</span>. <em>(One install covers Excel, Word, and PowerPoint. Outlook is a separate add-in, still in beta.)</em></li>
+      <li>Open Excel (or Word / PowerPoint) and go to <span class="uipath">Home → Add-ins</span> on Windows, or <span class="uipath">Tools → Add-ins</span> on Mac, then choose Claude.</li>
+      <li>Sign in with your work Claude account. The Claude panel opens beside your document.</li>
+      <li>Tip: open the panel any time with <span class="uipath">Ctrl + Alt + C</span> (Windows) or <span class="uipath">Ctrl + Option + C</span> (Mac).</li>
+    </ol>
+    <div class="call note"><div class="clabel">If "Get it now" is blocked</div>
+      <p>Work computers sometimes have the Office Store switched off, so the install fails. That's an IT setting, not your mistake — ask a champion (Part 8) to have it enabled or deployed for you.</p></div>
+
+    <h3 class="sub"><span class="k">Claude Code</span> — optional, for the technically inclined</h3>
+    <p>A more advanced surface for people doing software, scripting, or heavy data work. <strong>If that isn't you, you can safely ignore it</strong> — you're not missing anything for your day-to-day work. It's mentioned only so the few people it's relevant for know it exists.</p>
+  </section>
+
+  <!-- ===================== PART 4 — MODELS, LIMITS, CONTEXT ===================== -->
+  <div class="dim"></div>
+  <section class="part part-break">
+    <div class="part-open"><div class="part-no">04</div>
+      <div class="pt"><div class="pe">Part four</div><h2>Getting the best from Claude: models, limits &amp; context</h2></div></div>
+    <p>A little understanding here makes Claude both better and cheaper for the firm. Three short topics: which model to pick, how your usage limits work, and why shorter conversations give better answers.</p>
+
+    <div class="call note"><div class="clabel">First, one piece of jargon</div>
+      <p>You'll see the word <strong>"tokens."</strong> A token is just a small chunk of text — roughly a word. It's the unit Claude reads and writes in, and it's how usage is measured. You never count them yourself; it's only useful for understanding why longer documents and longer chats "cost" more.</p></div>
+
+    <h3 class="sub">Choosing a model</h3>
+    <p>Claude comes in three models. You switch between them by clicking the model name next to the send button (5 on the diagram in Part 2).</p>
+    <div class="models">
+      <div class="model">
+        <div class="mname">Haiku</div>
+        <div class="badge skip">Skip on our plan</div>
+        <p>The fastest and lightest. Its main selling point is being cheap and quick — but on our plan that isn't a saving we need, so its quality trade-off rarely makes sense.</p>
+      </div>
+      <div class="model pick">
+        <div class="mname">Sonnet</div>
+        <div class="badge main">Your main model</div>
+        <p>The sweet spot: strong quality for almost everything — drafting, summarising, analysis — without using up your limits as fast as Opus. Make this your default.</p>
+      </div>
+      <div class="model">
+        <div class="mname">Opus</div>
+        <div class="badge occ">Occasional</div>
+        <p>The most capable, for high-stakes or one-off work where quality really matters. Reach for it deliberately — it uses your limits faster and has its own tighter weekly cap.</p>
+      </div>
+    </div>
+    <p>Why skip Haiku? Our plan isn't billed per word — we pay for seats with generous usage — so Haiku's one real advantage (raw cheapness) buys us little, while you'd give up quality. Default to <strong>Sonnet</strong>; bring in <strong>Opus</strong> for the occasional important, self-contained job — ideally one that won't need a long working session, since Opus eats into your limits more quickly.</p>
+
+    <h3 class="sub">The effort setting</h3>
+    <p>Next to the model name is an <strong>effort</strong> setting — how hard Claude thinks before answering. Higher effort means more thorough answers, but they're slower and use more of your limit. The simple rule: <strong>leave it on the default</strong> for normal work, drop it to <strong>Low or Medium</strong> for simple or repetitive tasks to stretch your usage further, and only raise it for a genuinely hard one-off.</p>
+
+    <h3 class="sub">Your usage limits — watch the 5-hour one</h3>
+    <p>Your plan has <strong>two</strong> limits, and they're shared across Chat, Cowork, and Code together:</p>
+    <ul class="clean">
+      <li><strong>A 5-hour limit</strong> (this is the one to watch). It's a rolling window that starts with your first message and resets about five hours later. On our plan it can go quicker than you'd expect — a few heavy tasks (long documents, Cowork runs, Opus, high effort) can use a lot of it.</li>
+      <li><strong>A weekly limit</strong>, a larger budget that resets each week. Opus has its own, tighter weekly allowance — another reason to use it sparingly.</li>
+    </ul>
+    <p>You can see both at any time under <span class="uipath">Settings → Usage</span>. <strong>If you hit a limit,</strong> you're not locked out for long — wait for the rolling reset, switch to a lighter model or lower effort, or carry on with non-Claude work in the meantime. The practical habit: spread heavy jobs across the day rather than all at once, and keep Opus and Cowork for when they earn it.</p>
+
+    <h3 class="sub">Keep conversations sharp: the context window</h3>
+    <p>Every chat has a <strong>context window</strong> — the amount it can hold in view at once. Here's the key thing, and it's directly in your interest: <strong>every message you send makes Claude re-read the whole conversation so far.</strong> The longer a chat gets, the slower and more expensive each reply becomes — and, counter-intuitively, the <em>less</em> sharp, because the important part is now buried among everything else.</p>
+
+    <div class="figure">
+      <svg viewBox="0 0 800 290" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram comparing one long chat with separate chats per topic.">
+        <defs><linearGradient id="ctx" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#2F6B4F"/><stop offset="0.55" stop-color="#B07D24"/><stop offset="1" stop-color="#A2433A"/>
+        </linearGradient></defs>
+        <!-- A: one long chat -->
+        <text x="40" y="60" font-family="Archivo,sans-serif" font-size="13" font-weight="700" fill="#15241E">One long chat</text>
+        <rect x="40" y="74" width="600" height="38" rx="9" fill="url(#ctx)"/>
+        <text x="56" y="98" font-family="Inter,sans-serif" font-size="12.5" font-weight="600" fill="#EAF1EC">empty &amp; sharp</text>
+        <text x="470" y="98" font-family="Inter,sans-serif" font-size="12.5" font-weight="600" fill="#fff">full: slow &amp; fuzzy</text>
+        <text x="660" y="99" font-family="Inter,sans-serif" font-size="22" fill="#A2433A">✕</text>
+        <!-- B: separate chats -->
+        <text x="40" y="176" font-family="Archivo,sans-serif" font-size="13" font-weight="700" fill="#15241E">A new chat per topic</text>
+        <rect x="40" y="190" width="184" height="38" rx="9" fill="#2F6B4F"/>
+        <rect x="248" y="190" width="184" height="38" rx="9" fill="#2F6B4F"/>
+        <rect x="456" y="190" width="184" height="38" rx="9" fill="#2F6B4F"/>
+        <text x="132" y="214" font-family="Inter,sans-serif" font-size="12" font-weight="600" fill="#EAF1EC" text-anchor="middle">sharp</text>
+        <text x="340" y="214" font-family="Inter,sans-serif" font-size="12" font-weight="600" fill="#EAF1EC" text-anchor="middle">sharp</text>
+        <text x="548" y="214" font-family="Inter,sans-serif" font-size="12" font-weight="600" fill="#EAF1EC" text-anchor="middle">sharp</text>
+        <text x="660" y="216" font-family="Inter,sans-serif" font-size="20" fill="#2F6B4F">✓</text>
+      </svg>
+      <div class="figcaption">Same total work, better results: start a fresh chat whenever you change topic.</div>
+    </div>
+
+    <p>So the habit that pays off: <strong>one chat per topic, and start a new one when you move on.</strong> Finished the lease abstraction and now drafting an unrelated email? New chat. In <strong>Cowork</strong>, you don't have to manage this as closely — when a task runs long it tidies its own history automatically (you may see it "organising its thoughts"). And this doesn't fight with Projects (Part 5): a Project keeps your reference documents on hand across chats, but each new chat inside it still starts fresh and sharp.</p>
+  </section>
+
+  <!-- ===================== PART 5 — MEMORY ===================== -->
+  <div class="dim"></div>
+  <section class="part part-break">
+    <div class="part-open"><div class="part-no">05</div>
+      <div class="pt"><div class="pe">Part five</div><h2>Giving Claude memory</h2></div></div>
+    <p>By default, Claude starts each new conversation with a blank slate — it doesn't remember your last chat (and as Part 4 explained, that's often a good thing for quality). When you <em>do</em> want it to carry context, here's how, depending on the surface.</p>
+
+    <h3 class="sub">In Chat</h3>
+    <p>Use <strong>Projects</strong> (standing instructions plus reference files every chat in the project can see) and your <strong>personal preferences</strong> in Settings (the tone and format you always want). That's the Chat equivalent of giving Claude a memory.</p>
+
+    <h3 class="sub">In Cowork and Claude Code: the CLAUDE.md file</h3>
+    <p>When you open a folder in Cowork, Claude looks for a plain-text file called <strong>CLAUDE.md</strong> and reads it at the start of every session. Think of it as a one-page briefing that turns Claude from a stranger into a colleague who already knows the operation — who you are, what the firm does, how you like things done, and any firm rules to follow. Alongside it, Claude keeps its own running notes (a MEMORY.md file) updated as it learns your corrections over time.</p>
+
+    <div class="call note"><div class="clabel">What a good CLAUDE.md looks like</div>
+      <p style="margin-bottom:.6em"><strong>Keep it short</strong> — a page or two, not a novel. Counter-intuitively, very long files get followed <em>less</em> reliably, so include only what genuinely matters every time.</p>
+      <p style="margin-bottom:.6em"><strong>High signal:</strong> who you are and your role; what RCP does; how you like outputs; firm "always do / never do" rules; and where key things live.</p>
+      <p>Think of it as a <strong>constitution</strong> — short, stable, amended deliberately — and let the MEMORY.md notes capture day-to-day learnings.</p></div>
+
+    <h3 class="sub">The easy way to build your own</h3>
+    <p>You don't have to write it from scratch. Open Cowork and ask Claude to do it with you:</p>
+    <div class="prompt"><div class="plabel">Paste this into Cowork</div>
+      Interview me about my role, my work, and how I like things done, then write a CLAUDE.md file for me based on my answers. Ask one question at a time.</div>
+    <p>Answer its questions, read what it writes, adjust anything that's off, and you're done. <strong>Always read through what it produces before relying on it.</strong></p>
+
+    <h3 class="sub">The shared RCP starter template</h3>
+    <p>So nobody starts from a blank page, there's a firm-wide starter CLAUDE.md you can copy and personalise — it already includes the basics about RCP, how we work, and our data rules. <span class="flag">where this shared template lives so people can find it.</span></p>
+  </section>
+
+  <!-- ===================== PART 6 — USE CASES ===================== -->
+  <div class="dim"></div>
+  <section class="part part-break">
+    <div class="part-open"><div class="part-no">06</div>
+      <div class="pt"><div class="pe">Part six</div><h2>Putting it to work: real RCP use cases</h2></div></div>
+    <p>These are recipes drawn from our actual work. Each has what it's good for, a prompt you can copy, and one thing to watch.</p>
+
+    <div class="call tip"><div class="clabel">These five are only a taste</div>
+      <p>Don't read this as "the list of things Claude can do." It's five examples out of effectively <strong>endless</strong> possibilities — hundreds of useful workflows across our business, with more being discovered every week. If you can describe a task that involves text, documents, data, or research, it's worth trying. <strong>Never feel limited to what's on this page.</strong></p></div>
+
+    <div class="recipe"><div class="rhead"><span class="dot"></span><h4>Lease abstraction</h4></div><div class="rbody">
+      <div class="field"><div class="ft">Good for</div><p>Turning a stack of leases into a clean, comparable table.</p></div>
+      <div class="field"><div class="ft">Try this</div><div class="prompt"><div class="plabel">Prompt</div>I've uploaded three commercial lease agreements. For each one, pull out: tenant name, leased area (m²), lease start and end dates, break options, current annual rent, indexation mechanism, and service-charge arrangements. Put it in a single table, one row per lease, and flag anything unusual or missing in a short note underneath.</div></div>
+      <div class="field watch"><div class="ft">Watch for</div><p>Spot-check the extracted figures against the source. A misread date or rent figure looks just as confident as a correct one.</p></div>
+    </div></div>
+
+    <div class="recipe"><div class="rhead"><span class="dot"></span><h4>Investor letters and quarterly reporting</h4></div><div class="rbody">
+      <div class="field"><div class="ft">Good for</div><p>A strong first draft that matches our house style.</p></div>
+      <div class="field"><div class="ft">Try this</div><div class="prompt"><div class="plabel">Prompt</div>Using the attached performance figures and last quarter's investor letter as a style reference, draft this quarter's investor update — same tone and structure, about one page. Leave a clearly marked placeholder anywhere you'd need a number I haven't given you.</div></div>
+      <div class="field watch"><div class="ft">Watch for</div><p>Claude only knows the numbers you give it. Never let it invent figures — check every number. That's what the placeholders are for.</p></div>
+    </div></div>
+
+    <div class="recipe"><div class="rhead"><span class="dot"></span><h4>Inbox triage</h4></div><div class="rbody">
+      <div class="field"><div class="ft">Good for</div><p>Clearing a backlog and getting reply drafts in one pass.</p></div>
+      <div class="field"><div class="ft">Try this</div><div class="prompt"><div class="plabel">Prompt</div>Here are 15 emails I received today (below). Sort them into: needs a reply from me today, can wait, FYI only, and automated/spam. For the "needs a reply today" ones, draft a short suggested reply for each.</div></div>
+      <div class="field watch"><div class="ft">Watch for</div><p>Review before sending. Claude is making its best guess at priority and tone — the final call is yours.</p></div>
+    </div></div>
+
+    <div class="call tip"><div class="clabel">Going further — the automated version</div>
+      <p>The recipe above is the manual version. The same idea can run as a <strong>standing automation</strong>: an application that watches your inbox, triages every incoming email automatically, drafts suggested replies, and routes them to the right person for approval — so the sorting is done before you even open Outlook. A pipeline exactly like this has already been built for us; if continuous, hands-off email triage would help your role, ask a champion to set you up.</p></div>
+
+    <div class="recipe"><div class="rhead"><span class="dot"></span><h4>Underwriting support</h4></div><div class="rbody">
+      <div class="field"><div class="ft">Good for</div><p>A fast read on a new opportunity, and sharper questions.</p></div>
+      <div class="field"><div class="ft">Try this</div><div class="prompt"><div class="plabel">Prompt</div>I've uploaded an investment memo and a rent roll for a multifamily asset. Summarise the key deal terms, list the three biggest risks you can see in the numbers, and give me five sharp questions I should ask before we proceed.</div></div>
+      <div class="field watch"><div class="ft">Watch for</div><p>Treat its risk list as a prompt for your own thinking, not a conclusion.</p></div>
+    </div></div>
+
+    <div class="recipe"><div class="rhead"><span class="dot"></span><h4>Summarising long or dense documents</h4></div><div class="rbody">
+      <div class="field"><div class="ft">Good for</div><p>Getting on top of a forty-page document quickly.</p></div>
+      <div class="field"><div class="ft">Try this</div><div class="prompt"><div class="plabel">Prompt</div>This is a long regulatory document. Give me a one-paragraph summary, then a bullet list of the obligations that apply to an AFM-licensed AIFM, then tell me which sections I should read in full myself.</div></div>
+      <div class="field watch"><div class="ft">Watch for</div><p>For anything you'll rely on or act on, read the underlying sections yourself.</p></div>
+    </div></div>
+
+    <h3 class="sub">Writing a prompt that lands — five quick principles</h3>
+    <ol class="steps">
+      <li><strong>Say who and what.</strong> "Draft a formal email to an investor about a delayed distribution" beats "write an email."</li>
+      <li><strong>Give it the material.</strong> Paste or attach the document, figures, or example it should work from.</li>
+      <li><strong>Show what good looks like.</strong> A past example of the output you want is the single best instruction you can give.</li>
+      <li><strong>Ask for the format.</strong> A table, bullet points, one page — say so.</li>
+      <li><strong>Iterate.</strong> You don't have to get it perfect first time. "Make it shorter," "more formal," "add a line about X" — keep refining.</li>
+    </ol>
+    <p>And again: these examples are a starting point, not a boundary. The fastest way to find what's useful for <em>you</em> is to bring Claude a real task from your own week and see what happens.</p>
+  </section>
+
+  <!-- ===================== PART 7 — DATA SAFETY ===================== -->
+  <div class="dim"></div>
+  <section class="part part-break">
+    <div class="part-open"><div class="part-no">07</div>
+      <div class="pt"><div class="pe">Part seven</div><h2>Working safely with firm data</h2></div></div>
+    <p>We're a regulated firm, so a little care here keeps everyone safe. The system is deliberately simple: classify what you're handling, and follow the rule for that tier.</p>
+
+    <div class="table-wrap"><table class="tiers">
+      <thead><tr><th>Tier</th><th>What it covers</th><th>The rule</th></tr></thead>
+      <tbody>
+        <tr class="green"><td class="tier">Green — Public</td><td>Already-public information: published market data, public filings, general questions</td><td>Use freely</td></tr>
+        <tr class="amber"><td class="tier">Amber — Internal</td><td>Non-public but not sensitive: internal templates, draft analysis with no client or personal data, general notes</td><td>Fine to use — keep it in your RCP workspace</td></tr>
+        <tr class="red"><td class="tier">Red — Confidential</td><td>Commercially sensitive: deal terms, investor identities, valuations, unpublished fund performance, anything under NDA</td><td>Allowed, but <strong>only in your RCP work account</strong> — never a personal or free one — and apply extra judgement</td></tr>
+        <tr class="black"><td class="tier">Black — Regulated personal</td><td>GDPR personal data of investors or counterparties, KYC/CDD material (IDs, source-of-wealth docs), special-category data</td><td>Approved for use here, <strong>including automated workflows</strong>. Begin with a human reviewing every output; once a workflow has proven consistently accurate, you can consider automating it without per-output review</td></tr>
+      </tbody>
+    </table></div>
+
+    <p>Three rules sit on top of the table:</p>
+    <ul class="clean">
+      <li><strong>Only ever use Claude signed in with your RCP work email</strong> for firm material — never a personal or free Claude account.</li>
+      <li><strong>Start with a human reviewing and signing off</strong> anything that affects a decision or leaves the firm. Once a specific workflow has proven consistently reliable, automating it without per-output review is permitted — treat that as a deliberate step, not the default.</li>
+      <li><strong>When in doubt, treat a document as one tier more sensitive</strong> than you think, and ask.</li>
+    </ul>
+
+    <div class="call note"><div class="clabel">Note</div>
+      <p>These tiers are a sensible default. <span class="flag">reconcile with RCP's existing data-handling and Wwft policy before publication, so the guide never contradicts firm policy.</span></p></div>
+  </section>
+
+  <!-- ===================== PART 8 — FIRST 20 MIN + HELP ===================== -->
+  <div class="dim"></div>
+  <section class="part part-break">
+    <div class="part-open"><div class="part-no">08</div>
+      <div class="pt"><div class="pe">Part eight</div><h2>Your first twenty minutes, and where to get help</h2></div></div>
+
+    <h3 class="sub">A first-steps checklist</h3>
+    <ul class="check">
+      <li>Open the Claude app and sign in with your work email.</li>
+      <li>Check the model is set to Sonnet (next to the send button).</li>
+      <li>Paste in a real email and ask for a draft reply.</li>
+      <li>Upload a document and ask for a one-paragraph summary.</li>
+      <li>Set your personal preferences in Settings (how you like responses).</li>
+      <li>If you use spreadsheets: install the Claude add-in for Excel (Part 3).</li>
+      <li>Try one recipe from Part 6 that matches your job.</li>
+      <li>When ready: open Cowork, point it at a folder, and ask it to build your CLAUDE.md by interviewing you.</li>
+      <li>Upload <em>this guide</em> and run the coaching line from the top.</li>
+    </ul>
+
+    <h3 class="sub">Quick answers</h3>
+    <div class="qa">
+      <div class="row"><div class="q">Can I write to it in Dutch?</div><p class="a">Yes — Dutch works just as well as English, for both your questions and its answers.</p></div>
+      <div class="row"><div class="q">Will it remember me next time?</div><p class="a">Not on its own. Set personal preferences, use Projects, or a CLAUDE.md in Cowork to give it lasting context (Part 5).</p></div>
+      <div class="row"><div class="q">Is the firm's data safe?</div><p class="a">On your work account, yes — your chats are private and aren't used to train the model. Still follow the data tiers in Part 7.</p></div>
+      <div class="row"><div class="q">What if it gets something wrong?</div><p class="a">It can, confidently. Always check numbers, dates, and legal points, and keep a human in the loop on anything that matters.</p></div>
+      <div class="row"><div class="q">What happens if I hit a usage limit?</div><p class="a">You wait for the rolling reset, or switch to a lighter model or lower effort. Check <span class="uipath">Settings → Usage</span> to see where you stand.</p></div>
+    </div>
+
+    <h3 class="sub">Where to get help — this matters most</h3>
+    <p>Documents only get you so far; the fastest way to learn is to ask a person.</p>
+    <ul class="clean">
+      <li><strong>Your champions:</strong> <span class="flag">names of the 1–3 people staying on as the go-to contacts.</span> They're happy to be asked anything, however basic.</li>
+      <li><strong>The help channel:</strong> <span class="flag">the Teams / Slack channel for questions.</span> Post here so everyone learns from the answers.</li>
+      <li><strong>Office hours:</strong> <span class="flag">a recurring weekly drop-in for the first couple of months.</span> Bring real work and get hands-on help.</li>
+    </ul>
+
+    <div class="call tip"><div class="clabel">For the keen</div>
+      <p>Anthropic runs free self-paced courses (Anthropic Academy) covering the basics, prompting, and the more advanced features, if you'd like to go deeper on your own time.</p></div>
+  </section>
+
+  <!-- ===================== APPENDIX A ===================== -->
+  <div class="dim label"><span><span class="tag">Appendix A</span></span></div>
+  <section class="part part-break ai-box">
+    <div class="robot">For Claude</div>
+    <h2 style="font-family:'Archivo',sans-serif;font-weight:800;font-size:clamp(22px,4vw,30px);margin:.1em 0 .5em">Instructions for the AI</h2>
+    <p style="color:var(--ink-soft);font-size:15px"><em>If you're a person reading this: you can skip this section. It's a set of instructions for the AI when someone uploads this guide.</em></p>
+    <div class="ai-instr">
+      <p><strong>Instructions to Claude:</strong> A Rubens Capital Partners colleague has uploaded this guide and is most likely new to AI. Act as a warm, patient onboarding coach. Work in the language the user writes in.</p>
+      <p>Begin by briefly introducing yourself and asking three things, <strong>one at a time</strong>: their name, their role/team, and how comfortable they already feel with AI tools. Use their answers to tailor everything that follows.</p>
+      <p>Then walk them through getting set up, <strong>one step at a time, checking they're comfortable before moving on</strong>, in roughly this order:</p>
+      <ol>
+        <li>Confirm they're signed in with their work email, and that their model is set to Sonnet.</li>
+        <li>A first simple task in Chat (offer to draft a reply to an email they paste, or summarise a document) so they get an early win.</li>
+        <li>Setting personal preferences; the habit of a new chat per topic; and when it helps, creating a Project.</li>
+        <li>If relevant to their role, installing the Claude add-in for Excel, Word, or PowerPoint.</li>
+        <li>Trying Cowork on a real folder — recommend Auto mode, but for any demonstration use <strong>non-sensitive</strong> material only, and remind them of the data rules in Part 7.</li>
+        <li>Building their own CLAUDE.md by letting you interview them.</li>
+        <li>Pointing them to the two or three use cases in Part 6 most relevant to their role.</li>
+      </ol>
+      <p>Throughout: keep it encouraging and jargon-free, go at a genuine beginner's pace, never present more than one or two steps at once, and reassure them they can't break anything. If they want to stop, let them — they can return any time and pick up where they left off.</p>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span class="l">Rubens Capital Partners — Working with Claude</span>
+    <span>First draft · English · Edition 1.0 · 2026</span>
+  </div>
+
+</main>
+</body>
+</html>
